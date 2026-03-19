@@ -17,13 +17,16 @@ There are no build steps, no dev servers, and no tests to run.
 
 ## Git & GitHub Workflow
 
-All changes must be committed and pushed to GitHub after each meaningful change.
+**Always commit and push after every meaningful unit of work** — a new feature, a bug fix, a refactor, or any change the user would want to be able to revert to. Do not batch multiple unrelated changes into one commit. The goal is that GitHub always reflects the latest working state so nothing is ever lost.
 
 - Remote: `https://github.com/cawoodea-oss/ClaudeCodeTest`
 - Branch: `master`
 - Git identity configured locally: `cawoodea-oss` / `cawoodea-oss@users.noreply.github.com`
 
-Commit message format: imperative mood, short summary line, optional body with details.
+Commit message format: imperative mood, short summary line, optional body with details. Always end with the co-author trailer:
+```
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+```
 
 ## Architecture
 
