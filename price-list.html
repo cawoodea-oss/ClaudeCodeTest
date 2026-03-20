@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Price List</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100dvh;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .input-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--bg);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    .price-input-wrap {
+      position: relative;
+    }
+
+    .price-input-wrap span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .price-input-wrap input {
+      padding-left: 24px;
+    }
+
+    btn, button {
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-add {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .btn-add:hover { background: var(--primary-hover); }
+    .btn-add:active { transform: scale(0.98); }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .list-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      background: var(--border);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 0;
+      font-size: 0.95rem;
+    }
+
+    .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      animation: slide-in 0.18s ease;
+    }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .item-name {
+      flex: 1;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .item-price {
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 1.1rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      line-height: 1;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-remove:hover { background: #fee2e2; }
+
+    .total-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total-label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .total-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .btn-clear {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--danger);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-clear:hover {
+      background: #fee2e2;
+      border-color: var(--danger);
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 400px) {
+      header h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Price List</h1>
+      <p>Track products and their prices</p>
+    </header>
+
+    <div class="card">
+      <div class="form">
+        <div class="form-row">
+          <div class="input-group" style="flex: 2">
+            <label for="product-name">Product</label>
+            <input type="text" id="product-name" placeholder="e.g. Coffee beans" maxlength="80" />
+          </div>
+          <div class="input-group" style="flex: 1">
+            <label for="product-price">Price</label>
+            <div class="price-input-wrap">
+              <span>$</span>
+              <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01" />
+            </div>
+          </div>
+        </div>
+        <button class="btn-add" id="btn-add">+ Add Product</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="list-header">
+        <h2>Products</h2>
+        <span class="badge" id="item-count">0 items</span>
+      </div>
+      <div id="list-container">
+        <div class="empty" id="empty-state">
+          <div class="empty-icon">🛒</div>
+          No products yet. Add one above!
+        </div>
+        <div class="item-list" id="item-list"></div>
+      </div>
+    </div>
+
+    <div class="card total-card">
+      <span class="total-label">Total</span>
+      <span class="total-value" id="total">$0.00</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-clear" id="btn-clear">Clear all</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'price-list-items';
+
+    let items = load();
+
+    const nameInput  = document.getElementById('product-name');
+    const priceInput = document.getElementById('product-price');
+    const btnAdd     = document.getElementById('btn-add');
+    const btnClear   = document.getElementById('btn-clear');
+    const itemList   = document.getElementById('item-list');
+    const emptyState = document.getElementById('empty-state');
+    const itemCount  = document.getElementById('item-count');
+    const totalEl    = document.getElementById('total');
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function fmt(n) {
+      return '$' + Number(n).toFixed(2);
+    }
+
+    function render() {
+      itemList.innerHTML = '';
+
+      if (items.length === 0) {
+        emptyState.style.display = '';
+        itemList.style.display = 'none';
+      } else {
+        emptyState.style.display = 'none';
+        itemList.style.display = '';
+        items.forEach((item, i) => {
+          const el = document.createElement('div');
+          el.className = 'item';
+          el.innerHTML = `
+            <span class="item-name">${escHtml(item.name)}</span>
+            <span class="item-price">${fmt(item.price)}</span>
+            <button class="btn-remove" data-i="${i}" title="Remove">&#x2715;</button>
+          `;
+          itemList.appendChild(el);
+        });
+      }
+
+      const total = items.reduce((s, it) => s + Number(it.price), 0);
+      totalEl.textContent = fmt(total);
+      const n = items.length;
+      itemCount.textContent = n === 1 ? '1 item' : `${n} items`;
+
+      save();
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function addItem() {
+      const name  = nameInput.value.trim();
+      const price = parseFloat(priceInput.value);
+
+      if (!name) { nameInput.focus(); return; }
+      if (isNaN(price) || price < 0) { priceInput.focus(); return; }
+
+      items.push({ name, price });
+      render();
+
+      nameInput.value  = '';
+      priceInput.value = '';
+      nameInput.focus();
+    }
+
+    btnAdd.addEventListener('click', addItem);
+
+    nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') priceInput.focus();
+    });
+
+    priceInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addItem();
+    });
+
+    itemList.addEventListener('click', e => {
+      const btn = e.target.closest('.btn-remove');
+      if (!btn) return;
+      const i = parseInt(btn.dataset.i, 10);
+      items.splice(i, 1);
+      render();
+    });
+
+    btnClear.addEventListener('click', () => {
+      if (items.length === 0) return;
+      if (confirm('Remove all products?')) {
+        items = [];
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
