@@ -3,11 +3,22 @@
 import { useState } from "react";
 import Calendar from "./components/Calendar";
 
+const PRIORITY_ORDER = { high: 0, med: 1, low: 2, "": 3 };
+
+const PRIORITY_STYLES = {
+  high: { badge: "bg-red-100 text-red-700", btn: "bg-red-500 text-white" },
+  med:  { badge: "bg-amber-100 text-amber-700", btn: "bg-amber-400 text-white" },
+  low:  { badge: "bg-green-100 text-green-700", btn: "bg-green-500 text-white" },
+};
+
+const PRIORITY_LABELS = { high: "High", med: "Med", low: "Low" };
+
 export default function Home() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("");
   const [date, setDate] = useState("");
+  const [openTaskId, setOpenTaskId] = useState(null);
 
   function handleAddTask(e) {
     e.preventDefault();
@@ -18,6 +29,7 @@ export default function Home() {
       title: title.trim(),
       duration: Number(duration),
       date: date,
+      priority: "",
     };
 
     setTasks((prev) => [newTask, ...prev]);
@@ -25,6 +37,17 @@ export default function Home() {
     setDuration("");
     setDate("");
   }
+
+  function handleSetPriority(id, priority) {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, priority } : t))
+    );
+    setOpenTaskId(null);
+  }
+
+  const sortedTasks = [...tasks].sort(
+    (a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+  );
 
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4">
@@ -92,25 +115,69 @@ export default function Home() {
           <p className="text-center text-gray-400 text-sm">No tasks yet. Add one above.</p>
         ) : (
           <ul className="space-y-3">
-            {tasks.map((task) => (
-              <li
-                key={task.id}
-                className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4 flex items-center justify-between"
-              >
-                <span className="text-gray-900 font-medium">{task.title}</span>
-                <div className="flex items-center gap-3 ml-4 shrink-0">
-                  {task.date && (
-                    <span className="text-xs text-gray-400">
-                      {new Date(task.date + "T00:00:00").toLocaleDateString("default", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
+            {sortedTasks.map((task) => {
+              const isOpen = openTaskId === task.id;
+              const ps = task.priority ? PRIORITY_STYLES[task.priority] : null;
+
+              return (
+                <li key={task.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  {/* Main row */}
+                  <button
+                    onClick={() => setOpenTaskId(isOpen ? null : task.id)}
+                    className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {ps && (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${ps.badge}`}>
+                          {PRIORITY_LABELS[task.priority]}
+                        </span>
+                      )}
+                      <span className="text-gray-900 font-medium truncate">{task.title}</span>
+                    </div>
+                    <div className="flex items-center gap-3 ml-4 shrink-0">
+                      {task.date && (
+                        <span className="text-xs text-gray-400">
+                          {new Date(task.date + "T00:00:00").toLocaleDateString("default", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      )}
+                      <span className="text-sm text-gray-500">{task.duration} min</span>
+                      <span className="text-gray-400 text-xs">{isOpen ? "▲" : "▼"}</span>
+                    </div>
+                  </button>
+
+                  {/* Priority picker */}
+                  {isOpen && (
+                    <div className="px-5 pb-4 flex items-center gap-2">
+                      <span className="text-xs text-gray-500 mr-1">Priority:</span>
+                      {["high", "med", "low"].map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => handleSetPriority(task.id, p)}
+                          className={`text-xs font-semibold px-3 py-1 rounded-full transition-colors
+                            ${task.priority === p
+                              ? PRIORITY_STYLES[p].btn
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                        >
+                          {PRIORITY_LABELS[p]}
+                        </button>
+                      ))}
+                      {task.priority && (
+                        <button
+                          onClick={() => handleSetPriority(task.id, "")}
+                          className="text-xs text-gray-400 hover:text-gray-600 ml-1"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
                   )}
-                  <span className="text-sm text-gray-500">{task.duration} min</span>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
 
