@@ -1,427 +1,1103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Price List</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>PriceTrack</title>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #f5f5f5;
-      --surface: #ffffff;
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --danger: #ef4444;
-      --danger-hover: #dc2626;
-      --text: #111827;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --radius: 12px;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --primary:#2563EB;--primary-d:#1d4ed8;--primary-l:#dbeafe;
+      --green:#059669;--green-l:#d1fae5;
+      --orange:#EA580C;--orange-l:#ffedd5;
+      --red:#dc2626;--red-l:#fee2e2;
+      --warn:#d97706;
+      --bg:#f1f5f9;--surf:#ffffff;--surf2:#f8fafc;
+      --border:#e2e8f0;--text:#0f172a;--t2:#475569;--t3:#94a3b8;
+      --r:16px;--rs:8px;
+      --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+      --shm:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -1px rgba(0,0,0,.04);
+      --shl:0 10px 15px -3px rgba(0,0,0,.07),0 4px 6px -2px rgba(0,0,0,.03);
+      --nav:68px;--hdr:60px;
     }
+    html,body{height:100%;overflow:hidden}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      min-height: 100dvh;
-      padding: 16px;
-      display: flex;
-      justify-content: center;
-    }
+    /* ── AUTH ── */
+    #auth-screen{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 55%,#0284c7 100%)}
+    .auth-logo{text-align:center;margin-bottom:36px}
+    .auth-logo-icon{width:72px;height:72px;background:rgba(255,255,255,.15);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:2rem;backdrop-filter:blur(10px)}
+    .auth-logo h1{color:#fff;font-size:1.75rem;font-weight:800;letter-spacing:-.5px}
+    .auth-logo p{color:rgba(255,255,255,.7);font-size:.875rem;margin-top:4px}
+    .auth-card{background:#fff;border-radius:var(--r);padding:28px 24px;width:100%;max-width:400px;box-shadow:var(--shl)}
+    .auth-tabs{display:flex;background:var(--bg);border-radius:var(--rs);padding:4px;margin-bottom:20px}
+    .auth-tab{flex:1;padding:8px;text-align:center;font-size:.875rem;font-weight:600;border:none;background:none;cursor:pointer;border-radius:6px;color:var(--t2);transition:all .2s;font-family:inherit}
+    .auth-tab.active{background:#fff;color:var(--primary);box-shadow:var(--sh)}
+    .auth-form{display:flex;flex-direction:column;gap:12px}
+    .fg{display:flex;flex-direction:column;gap:4px}
+    .fg label{font-size:.75rem;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.05em}
+    .fg input{padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.95rem;color:var(--text);background:var(--surf2);outline:none;transition:border-color .15s;font-family:inherit}
+    .fg input:focus{border-color:var(--primary);background:#fff}
+    .btn-primary{background:var(--primary);color:#fff;border:none;border-radius:var(--rs);padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;font-family:inherit;width:100%}
+    .btn-primary:hover{background:var(--primary-d)}
+    .btn-primary:active{transform:scale(.98)}
+    .auth-err{background:var(--red-l);border:1px solid #fca5a5;color:var(--red);border-radius:var(--rs);padding:10px 12px;font-size:.8rem;display:none;margin-bottom:4px}
 
-    .app {
-      width: 100%;
-      max-width: 540px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    /* ── APP ── */
+    #app-screen{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto}
+    .app-header{height:var(--hdr);background:var(--surf);display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--border);gap:10px;flex-shrink:0;box-shadow:var(--sh);position:relative;z-index:10}
+    .header-logo{font-size:1.15rem;font-weight:800;color:var(--primary);letter-spacing:-.5px}
+    .header-title{flex:1;font-size:1rem;font-weight:700;color:var(--text)}
+    .header-avatar{width:34px;height:34px;background:var(--primary-l);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:var(--primary);cursor:pointer;flex-shrink:0}
+    .tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+    .tab-pane{display:none;padding:16px;min-height:100%;animation:fadeIn .2s ease}
+    .tab-pane.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    .bottom-nav{height:var(--nav);background:var(--surf);border-top:1px solid var(--border);display:flex;align-items:stretch;flex-shrink:0;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+    .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--t3);font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;transition:color .15s;padding-bottom:4px;font-family:inherit;position:relative}
+    .nav-btn.active{color:var(--primary)}
+    .nav-icon{font-size:1.3rem;line-height:1}
+    .nav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--red);color:#fff;border-radius:999px;font-size:.55rem;font-weight:800;padding:1px 5px;line-height:1.4}
 
-    header {
-      text-align: center;
-      padding: 8px 0;
-    }
+    /* ── SHARED ── */
+    .sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .sec-title{font-size:1rem;font-weight:700}
+    .sec-btn{font-size:.8rem;font-weight:600;color:var(--primary);cursor:pointer;background:none;border:none;font-family:inherit}
+    .search-bar{position:relative;margin-bottom:14px}
+    .search-bar input{width:100%;padding:10px 13px 10px 38px;border:1.5px solid var(--border);border-radius:11px;font-size:.9rem;background:var(--surf);color:var(--text);outline:none;font-family:inherit;transition:border-color .15s}
+    .search-bar input:focus{border-color:var(--primary)}
+    .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t3);pointer-events:none;font-size:1rem}
+    .filter-row{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+    .filter-row::-webkit-scrollbar{display:none}
+    .chip{padding:5px 13px;border-radius:999px;border:1.5px solid var(--border);background:var(--surf);font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--t2);transition:all .15s;font-family:inherit}
+    .chip.active{border-color:var(--primary);background:var(--primary-l);color:var(--primary)}
+    .empty-state{text-align:center;padding:48px 20px}
+    .empty-icon{font-size:3rem;margin-bottom:10px}
+    .empty-title{font-size:1rem;font-weight:700;margin-bottom:5px}
+    .empty-sub{font-size:.85rem;color:var(--t2);margin-bottom:18px}
 
-    header h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
+    /* ── STATS ── */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:18px}
+    .stat-card{background:var(--surf);border-radius:12px;padding:13px 8px;text-align:center;box-shadow:var(--sh)}
+    .stat-val{font-size:1.45rem;font-weight:800;line-height:1;margin-bottom:3px}
+    .stat-lbl{font-size:.67rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em}
 
-    header p {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-top: 4px;
-    }
+    /* ── PRODUCT CARD ── */
+    .pcard{background:var(--surf);border-radius:var(--r);padding:14px 14px 14px 18px;margin-bottom:11px;box-shadow:var(--sh);position:relative;overflow:hidden;transition:box-shadow .15s,transform .15s;cursor:pointer}
+    .pcard:active{transform:scale(.99);box-shadow:var(--shm)}
+    .pcard-accent{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:16px 0 0 16px}
+    .acc-below{background:var(--green)}
+    .acc-above{background:var(--orange)}
+    .acc-equal{background:var(--primary)}
+    .pcard-top{display:flex;align-items:flex-start;gap:8px}
+    .pcard-info{flex:1;min-width:0}
+    .pcard-name{font-size:.93rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+    .pcard-sku{font-size:.72rem;color:var(--t3);font-family:monospace}
+    .badge{padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:700}
+    .b-below{background:var(--green-l);color:var(--green)}
+    .b-above{background:var(--orange-l);color:var(--orange)}
+    .b-equal{background:var(--primary-l);color:var(--primary)}
+    .pcard-prices{display:flex;gap:10px;margin-top:11px}
+    .price-blk{flex:1}
+    .price-lbl{font-size:.67rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px}
+    .price-val{font-size:1.15rem;font-weight:800}
+    .pv-below{color:var(--green)}
+    .pv-above{color:var(--orange)}
+    .pcard-sparkline{margin-top:9px}
+    .pcard-footer{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
+    .card-date{font-size:.72rem;color:var(--t3)}
+    .card-acts{display:flex;gap:5px}
+    .btn-icon{width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:background .15s}
+    .btn-edit{background:var(--primary-l);color:var(--primary)}
+    .btn-edit:hover{background:#bfdbfe}
+    .btn-del{background:var(--red-l);color:var(--red)}
+    .btn-del:hover{background:#fecaca}
 
-    .card {
-      background: var(--surface);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 16px;
-    }
+    /* ── ADD FORM ── */
+    .form-card{background:var(--surf);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+    .form-title{font-size:.95rem;font-weight:700;margin-bottom:14px}
+    .form-grid{display:flex;flex-direction:column;gap:12px}
+    .fr2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .pfx-wrap{position:relative}
+    .pfx-wrap .pfx{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t2);font-weight:600;pointer-events:none;font-size:.9rem}
+    .pfx-wrap input{padding-left:22px}
+    .sku-hint{font-size:.72rem;margin-top:3px;display:none}
+    .sku-ok{color:var(--green);display:block}
+    .sku-bad{color:var(--red);display:block}
+    textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.9rem;color:var(--text);background:var(--surf2);outline:none;resize:vertical;min-height:64px;font-family:inherit;transition:border-color .15s}
+    textarea:focus{border-color:var(--primary);background:#fff}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:2px 0}
+    .tgl-lbl strong{font-size:.88rem;font-weight:600;display:block}
+    .tgl-lbl span{font-size:.76rem;color:var(--t3)}
+    .tgl{width:42px;height:22px;background:var(--border);border-radius:11px;position:relative;cursor:pointer;border:none;transition:background .2s;flex-shrink:0}
+    .tgl.on{background:var(--primary)}
+    .tgl::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+    .tgl.on::after{transform:translateX(20px)}
 
-    .form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    /* ── HISTORY ── */
+    .hist-card{background:var(--surf);border-radius:var(--r);padding:14px;margin-bottom:11px;box-shadow:var(--sh)}
+    .hist-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+    .hist-name{font-size:.9rem;font-weight:700}
+    .hist-sku{font-size:.72rem;color:var(--t3);font-family:monospace}
+    .price-chart{width:100%;height:88px;display:block}
+    .chart-lbls{display:flex;justify-content:space-between;margin-top:2px}
+    .chart-lbl{font-size:.63rem;color:var(--t3)}
+    .hist-entries{margin-top:10px;border-top:1px solid var(--border);padding-top:8px}
+    .h-entry{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+    .h-entry:last-child{border-bottom:none}
+    .h-date{color:var(--t2)}
+    .h-price{font-weight:700}
+    .t-up{color:var(--orange)}.t-dn{color:var(--green)}.t-fl{color:var(--t3)}
+    .add-price-row{display:flex;gap:7px;margin-top:9px}
+    .add-price-row input{flex:1;padding:8px 10px 8px 18px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.85rem;font-family:inherit;outline:none;transition:border-color .15s;background:var(--surf2)}
+    .add-price-row input:focus{border-color:var(--primary)}
+    .btn-sm{padding:8px 13px;border:none;border-radius:var(--rs);background:var(--primary);color:#fff;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+    .btn-sm:hover{background:var(--primary-d)}
 
-    .form-row {
-      display: flex;
-      gap: 8px;
-    }
+    /* ── NOTIFICATIONS ── */
+    .notif-card{background:var(--surf);border-radius:var(--r);padding:12px 14px;margin-bottom:9px;box-shadow:var(--sh);display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:opacity .15s}
+    .notif-card.read{opacity:.55}
+    .notif-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .ni-alert{background:var(--green-l)}.ni-warn{background:var(--orange-l)}.ni-info{background:var(--primary-l)}
+    .notif-body{flex:1;min-width:0}
+    .notif-title{font-size:.88rem;font-weight:700;margin-bottom:1px}
+    .notif-msg{font-size:.78rem;color:var(--t2)}
+    .notif-time{font-size:.68rem;color:var(--t3);margin-top:3px}
+    .notif-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:5px}
+    .notif-card.read .notif-dot{display:none}
+    .notif-actions{display:flex;gap:8px;margin-bottom:12px}
+    .btn-outline{padding:7px 14px;border:1.5px solid var(--border);border-radius:var(--rs);background:none;font-size:.8rem;font-weight:600;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .15s}
+    .btn-outline:hover{border-color:var(--primary);color:var(--primary)}
 
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-    }
+    /* ── SETTINGS ── */
+    .settings-sec{margin-bottom:18px}
+    .settings-lbl{font-size:.72rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;padding:0 3px}
+    .settings-card{background:var(--surf);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+    .s-row{display:flex;align-items:center;padding:13px 15px;border-bottom:1px solid var(--border);gap:11px}
+    .s-row:last-child{border-bottom:none}
+    .s-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+    .ico-blue{background:var(--primary-l)}.ico-green{background:var(--green-l)}.ico-orange{background:var(--orange-l)}.ico-red{background:var(--red-l)}
+    .s-lbl{flex:1}
+    .s-lbl strong{font-size:.88rem;display:block}
+    .s-lbl span{font-size:.76rem;color:var(--t3)}
+    .s-arr{color:var(--t3)}
+    .btn-logout{width:100%;padding:13px;border:none;border-radius:var(--r);background:var(--red-l);color:var(--red);font-size:.93rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;margin-top:8px}
+    .btn-logout:hover{background:#fecaca}
 
-    .input-group label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+    /* ── MODAL ── */
+    .modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(2px)}
+    .modal-ov.open{display:flex}
+    .modal{background:var(--surf);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:92dvh;overflow-y:auto;padding:18px 20px 28px;animation:slideUp .25s ease}
+    @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+    .modal-title{font-size:1.1rem;font-weight:800;margin-bottom:18px}
+    .modal-footer{display:flex;gap:9px;margin-top:18px}
+    .btn-cancel{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:none;font-size:.9rem;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit}
+    .btn-save{flex:2;padding:12px;border:none;border-radius:var(--rs);background:var(--primary);font-size:.9rem;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:background .15s}
+    .btn-save:hover{background:var(--primary-d)}
 
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
-      color: var(--text);
-      background: var(--bg);
-      transition: border-color 0.15s;
-      outline: none;
-    }
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:calc(var(--nav) + 12px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:#fff;padding:9px 18px;border-radius:999px;font-size:.82rem;font-weight:600;z-index:200;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap;pointer-events:none}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-    input[type="text"]:focus,
-    input[type="number"]:focus {
-      border-color: var(--primary);
-      background: #fff;
-    }
-
-    .price-input-wrap {
-      position: relative;
-    }
-
-    .price-input-wrap span {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 1rem;
-      pointer-events: none;
-    }
-
-    .price-input-wrap input {
-      padding-left: 24px;
-    }
-
-    btn, button {
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .btn-add {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 11px 16px;
-      font-size: 1rem;
-      font-weight: 600;
-      width: 100%;
-      transition: background 0.15s;
-    }
-
-    .btn-add:hover { background: var(--primary-hover); }
-    .btn-add:active { transform: scale(0.98); }
-
-    .list-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .list-header h2 {
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .badge {
-      background: var(--border);
-      color: var(--muted);
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 32px 0;
-      font-size: 0.95rem;
-    }
-
-    .empty-icon {
-      font-size: 2.5rem;
-      margin-bottom: 8px;
-    }
-
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px;
-      background: var(--bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      animation: slide-in 0.18s ease;
-    }
-
-    @keyframes slide-in {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .item-name {
-      flex: 1;
-      font-weight: 500;
-      word-break: break-word;
-    }
-
-    .item-price {
-      font-weight: 700;
-      color: var(--primary);
-      white-space: nowrap;
-    }
-
-    .btn-remove {
-      background: none;
-      border: none;
-      color: var(--danger);
-      font-size: 1.1rem;
-      padding: 4px 6px;
-      border-radius: 6px;
-      line-height: 1;
-      transition: background 0.15s;
-      flex-shrink: 0;
-    }
-
-    .btn-remove:hover { background: #fee2e2; }
-
-    .total-card {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .total-label {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--muted);
-    }
-
-    .total-value {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .btn-clear {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--danger);
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .btn-clear:hover {
-      background: #fee2e2;
-      border-color: var(--danger);
-    }
-
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    @media (max-width: 400px) {
-      header h1 { font-size: 1.4rem; }
-    }
+    [hidden]{display:none!important}
   </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Price List</h1>
-      <p>Track products and their prices</p>
-    </header>
 
-    <div class="card">
-      <div class="form">
-        <div class="form-row">
-          <div class="input-group" style="flex: 2">
-            <label for="product-name">Product</label>
-            <input type="text" id="product-name" placeholder="e.g. Coffee beans" maxlength="80" />
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">📊</div>
+    <h1>PriceTrack</h1>
+    <p>Monitor products. Hit your target.</p>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+    </div>
+    <div id="auth-err" class="auth-err"></div>
+
+    <form class="auth-form" id="login-form" onsubmit="doLogin(event)">
+      <div class="fg"><label>Email</label><input type="email" id="li-email" placeholder="you@email.com" required/></div>
+      <div class="fg"><label>Password</label><input type="password" id="li-pass" placeholder="Password" required/></div>
+      <button class="btn-primary" type="submit">Sign In →</button>
+      <div style="text-align:center;font-size:.78rem;color:var(--t3)">Demo: demo@demo.com / demo123</div>
+    </form>
+
+    <form class="auth-form" id="register-form" style="display:none" onsubmit="doRegister(event)">
+      <div class="fg"><label>Name</label><input type="text" id="reg-name" placeholder="Your name" required/></div>
+      <div class="fg"><label>Email</label><input type="email" id="reg-email" placeholder="you@email.com" required/></div>
+      <div class="fg"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters" required minlength="6"/></div>
+      <button class="btn-primary" type="submit">Create Account →</button>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" hidden>
+  <div class="app-header">
+    <span class="header-logo">📊</span>
+    <span class="header-title" id="hdr-title">Dashboard</span>
+    <div class="header-avatar" id="hdr-avatar" title="Account">?</div>
+  </div>
+
+  <div class="tab-content">
+    <!-- DASHBOARD -->
+    <div class="tab-pane active" id="tab-dash">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Tracked</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--green)" id="stat-below">0</div><div class="stat-lbl">At Target</div></div>
+        <div class="stat-card"><div class="stat-val" style="color:var(--orange)" id="stat-above">0</div><div class="stat-lbl">Above Target</div></div>
+      </div>
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="dash-search" placeholder="Search products or SKU…" oninput="renderDash()"/>
+      </div>
+      <div class="filter-row">
+        <button class="chip active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+        <button class="chip" data-filter="below" onclick="setFilter(this,'below')">✅ At Target</button>
+        <button class="chip" data-filter="above" onclick="setFilter(this,'above')">⚠️ Above</button>
+        <button class="chip" data-filter="alert" onclick="setFilter(this,'alert')">🔔 Alerts On</button>
+      </div>
+      <div id="dash-list"></div>
+    </div>
+
+    <!-- ADD/EDIT -->
+    <div class="tab-pane" id="tab-add">
+      <div class="form-card">
+        <div class="form-title" id="add-form-title">➕ Add New Product</div>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Product Name *</label>
+            <input type="text" id="f-name" placeholder="e.g. Sony WH-1000XM5" maxlength="80"/>
           </div>
-          <div class="input-group" style="flex: 1">
-            <label for="product-price">Price</label>
-            <div class="price-input-wrap">
-              <span>$</span>
-              <input type="number" id="product-price" placeholder="0.00" min="0" step="0.01" />
+          <div class="fr2">
+            <div class="fg">
+              <label>SKU / Model No.</label>
+              <input type="text" id="f-sku" placeholder="e.g. WH1000XM5" oninput="validateSKU(this)" maxlength="30"/>
+              <div class="sku-hint" id="sku-hint"></div>
+            </div>
+            <div class="fg">
+              <label>Store / Source</label>
+              <input type="text" id="f-store" placeholder="Amazon, BestBuy…" maxlength="30"/>
             </div>
           </div>
+          <div class="fr2">
+            <div class="fg">
+              <label>Current Price *</label>
+              <div class="pfx-wrap">
+                <span class="pfx">$</span>
+                <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01" style="padding-left:22px"/>
+              </div>
+            </div>
+            <div class="fg">
+              <label>Target Price *</label>
+              <div class="pfx-wrap">
+                <span class="pfx">$</span>
+                <input type="number" id="f-target" placeholder="0.00" min="0" step="0.01" style="padding-left:22px"/>
+              </div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Product URL (optional)</label>
+            <input type="url" id="f-url" placeholder="https://…"/>
+          </div>
+          <div class="fg">
+            <label>Notes</label>
+            <textarea id="f-notes" placeholder="Any notes about this product…"></textarea>
+          </div>
+          <div class="toggle-row">
+            <div class="tgl-lbl">
+              <strong>Price Alert</strong>
+              <span>Notify when price drops to target</span>
+            </div>
+            <button type="button" class="tgl on" id="f-alert" onclick="toggleTgl(this)"></button>
+          </div>
         </div>
-        <button class="btn-add" id="btn-add">+ Add Product</button>
       </div>
+      <button class="btn-primary" id="add-submit-btn" onclick="submitProduct()">Save Product</button>
+      <button id="add-cancel-btn" style="display:none;width:100%;padding:12px;margin-top:9px;border:1.5px solid var(--border);border-radius:var(--rs);background:none;font-size:.9rem;font-weight:700;color:var(--t2);cursor:pointer;font-family:inherit" onclick="cancelEdit()">Cancel</button>
     </div>
 
-    <div class="card">
-      <div class="list-header">
-        <h2>Products</h2>
-        <span class="badge" id="item-count">0 items</span>
+    <!-- HISTORY -->
+    <div class="tab-pane" id="tab-hist">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="hist-search" placeholder="Search products…" oninput="renderHistory()"/>
       </div>
-      <div id="list-container">
-        <div class="empty" id="empty-state">
-          <div class="empty-icon">🛒</div>
-          No products yet. Add one above!
+      <div id="hist-list"></div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="tab-pane" id="tab-notif">
+      <div class="notif-actions">
+        <button class="btn-outline" onclick="markAllRead()">Mark all read</button>
+        <button class="btn-outline" onclick="clearNotifs()">Clear all</button>
+      </div>
+      <div id="notif-list"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-pane" id="tab-settings">
+      <div class="settings-sec">
+        <div class="settings-lbl">Account</div>
+        <div class="settings-card">
+          <div class="s-row">
+            <div class="s-ico ico-blue">👤</div>
+            <div class="s-lbl"><strong id="s-name">—</strong><span id="s-email">—</span></div>
+          </div>
         </div>
-        <div class="item-list" id="item-list"></div>
       </div>
-    </div>
-
-    <div class="card total-card">
-      <span class="total-label">Total</span>
-      <span class="total-value" id="total">$0.00</span>
-    </div>
-
-    <div class="actions">
-      <button class="btn-clear" id="btn-clear">Clear all</button>
+      <div class="settings-sec">
+        <div class="settings-lbl">Notifications</div>
+        <div class="settings-card">
+          <div class="s-row">
+            <div class="s-ico ico-green">🔔</div>
+            <div class="s-lbl"><strong>Price Drop Alerts</strong><span>Notify when price hits target</span></div>
+            <button class="tgl on" id="s-tgl-alert" onclick="toggleTgl(this);savePref()"></button>
+          </div>
+          <div class="s-row">
+            <div class="s-ico ico-orange">📈</div>
+            <div class="s-lbl"><strong>Price Increase Warnings</strong><span>Notify when price rises 10%+</span></div>
+            <button class="tgl on" id="s-tgl-rise" onclick="toggleTgl(this);savePref()"></button>
+          </div>
+          <div class="s-row">
+            <div class="s-ico ico-blue">📋</div>
+            <div class="s-lbl"><strong>Weekly Summary</strong><span>Weekly digest of tracked items</span></div>
+            <button class="tgl" id="s-tgl-weekly" onclick="toggleTgl(this);savePref()"></button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-sec">
+        <div class="settings-lbl">App</div>
+        <div class="settings-card">
+          <div class="s-row">
+            <div class="s-ico ico-blue">📦</div>
+            <div class="s-lbl"><strong id="s-count">0 products</strong><span>currently tracked</span></div>
+          </div>
+          <div class="s-row" style="cursor:pointer" onclick="exportData()">
+            <div class="s-ico ico-green">💾</div>
+            <div class="s-lbl"><strong>Export Data</strong><span>Download your product list as JSON</span></div>
+            <span class="s-arr">›</span>
+          </div>
+          <div class="s-row" style="cursor:pointer" onclick="if(confirm('Clear all products? This cannot be undone.')){clearAllProducts()}">
+            <div class="s-ico ico-red">🗑️</div>
+            <div class="s-lbl"><strong>Clear All Products</strong><span>Remove all tracked products</span></div>
+            <span class="s-arr">›</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
 
-  <script>
-    const STORAGE_KEY = 'price-list-items';
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-dash" onclick="switchTab('dash')">
+      <span class="nav-icon">🏠</span><span>Dashboard</span>
+    </button>
+    <button class="nav-btn" id="nav-add" onclick="switchTab('add')">
+      <span class="nav-icon">➕</span><span>Add</span>
+    </button>
+    <button class="nav-btn" id="nav-hist" onclick="switchTab('hist')">
+      <span class="nav-icon">📈</span><span>History</span>
+    </button>
+    <button class="nav-btn" id="nav-notif" onclick="switchTab('notif')">
+      <span class="nav-icon">🔔</span><span>Alerts</span>
+      <span class="nav-badge" id="notif-badge" hidden>0</span>
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
+      <span class="nav-icon">⚙️</span><span>Settings</span>
+    </button>
+  </nav>
+</div>
 
-    let items = load();
+<!-- MODAL (delete confirm) -->
+<div class="modal-ov" id="del-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Remove Product?</div>
+    <p style="font-size:.9rem;color:var(--t2);margin-bottom:4px">This will delete <strong id="del-name"></strong> and all its price history.</p>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('del-modal')">Cancel</button>
+      <button class="btn-save" style="background:var(--red)" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
 
-    const nameInput  = document.getElementById('product-name');
-    const priceInput = document.getElementById('product-price');
-    const btnAdd     = document.getElementById('btn-add');
-    const btnClear   = document.getElementById('btn-clear');
-    const itemList   = document.getElementById('item-list');
-    const emptyState = document.getElementById('empty-state');
-    const itemCount  = document.getElementById('item-count');
-    const totalEl    = document.getElementById('total');
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-    function load() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-      catch { return []; }
-    }
+<script>
+// ── DATA LAYER ──────────────────────────────────────────────
+const SK = { users:'pt_users', cur:'pt_cur', products:'pt_products', notifs:'pt_notifs', prefs:'pt_prefs' };
 
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }
+function ls(k){ try{ return JSON.parse(localStorage.getItem(k)) || null }catch{ return null } }
+function ss(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
 
-    function fmt(n) {
-      return '$' + Number(n).toFixed(2);
-    }
+function getUsers(){ return ls(SK.users) || [] }
+function getProducts(){ return (ls(SK.products) || []).filter(p => p.userId === currentUser()?.id) }
+function getNotifs(){ return (ls(SK.notifs) || []).filter(n => n.userId === currentUser()?.id) }
+function getPrefs(){ return ls(SK.prefs) || { alert:true, rise:true, weekly:false } }
+function currentUser(){ return ls(SK.cur) }
 
-    function render() {
-      itemList.innerHTML = '';
+function saveProducts(arr){
+  const all = (ls(SK.products) || []).filter(p => p.userId !== currentUser()?.id);
+  ss(SK.products, [...all, ...arr]);
+}
+function saveNotifs(arr){
+  const all = (ls(SK.notifs) || []).filter(n => n.userId !== currentUser()?.id);
+  ss(SK.notifs, [...all, ...arr]);
+}
+function savePref(){
+  const prefs = getPrefs();
+  prefs.alert   = document.getElementById('s-tgl-alert').classList.contains('on');
+  prefs.rise    = document.getElementById('s-tgl-rise').classList.contains('on');
+  prefs.weekly  = document.getElementById('s-tgl-weekly').classList.contains('on');
+  ss(SK.prefs, prefs);
+}
 
-      if (items.length === 0) {
-        emptyState.style.display = '';
-        itemList.style.display = 'none';
-      } else {
-        emptyState.style.display = 'none';
-        itemList.style.display = '';
-        items.forEach((item, i) => {
-          const el = document.createElement('div');
-          el.className = 'item';
-          el.innerHTML = `
-            <span class="item-name">${escHtml(item.name)}</span>
-            <span class="item-price">${fmt(item.price)}</span>
-            <button class="btn-remove" data-i="${i}" title="Remove">&#x2715;</button>
-          `;
-          itemList.appendChild(el);
-        });
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
+function fmt(n){ return '$' + Number(n).toFixed(2) }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function fmtDate(ts){ return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}) }
+function fmtDateFull(ts){ return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) }
+
+// ── BOOTSTRAP DEMO ──
+function seedDemo(){
+  const users = getUsers();
+  if(!users.find(u=>u.email==='demo@demo.com')){
+    users.push({id:'demo', name:'Demo User', email:'demo@demo.com', password:'demo123'});
+    ss(SK.users, users);
+  }
+  const prods = ls(SK.products) || [];
+  if(!prods.find(p=>p.userId==='demo')){
+    const now = Date.now();
+    const day = 86400000;
+    const demoProducts = [
+      { id:uid(), userId:'demo', name:'Sony WH-1000XM5', sku:'WH1000XM5', store:'Amazon',
+        targetPrice:250, alertEnabled:true, notes:'Best noise-cancelling headphones',
+        url:'', createdAt: now - 7*day,
+        priceHistory:[
+          {ts:now-6*day,price:349},{ts:now-5*day,price:329},{ts:now-4*day,price:319},
+          {ts:now-3*day,price:299},{ts:now-2*day,price:289},{ts:now-day,price:269},{ts:now,price:258}
+        ]
+      },
+      { id:uid(), userId:'demo', name:'Samsung 65" QLED TV', sku:'QN65Q80C', store:'BestBuy',
+        targetPrice:800, alertEnabled:true, notes:'Living room upgrade',
+        url:'', createdAt: now - 14*day,
+        priceHistory:[
+          {ts:now-6*day,price:1099},{ts:now-5*day,price:1099},{ts:now-4*day,price:999},
+          {ts:now-3*day,price:949},{ts:now-2*day,price:929},{ts:now-day,price:899},{ts:now,price:875}
+        ]
+      },
+      { id:uid(), userId:'demo', name:'Apple AirPods Pro 2', sku:'MTJV3LL/A', store:'Apple Store',
+        targetPrice:200, alertEnabled:false, notes:'',
+        url:'', createdAt: now - 3*day,
+        priceHistory:[
+          {ts:now-2*day,price:249},{ts:now-day,price:249},{ts:now,price:249}
+        ]
       }
+    ];
+    ss(SK.products, [...prods, ...demoProducts]);
+    // demo notifications
+    const notifs = ls(SK.notifs) || [];
+    notifs.push(
+      {id:uid(),userId:'demo',type:'alert',title:'Price Drop!',msg:'Sony WH-1000XM5 dropped to $258 — getting close to your $250 target.',ts:now-3600000,read:false},
+      {id:uid(),userId:'demo',type:'info',title:'New Product Added',msg:'Samsung 65" QLED TV is now being tracked.',ts:now-7*day,read:true}
+    );
+    ss(SK.notifs, notifs);
+  }
+}
+seedDemo();
 
-      const total = items.reduce((s, it) => s + Number(it.price), 0);
-      totalEl.textContent = fmt(total);
-      const n = items.length;
-      itemCount.textContent = n === 1 ? '1 item' : `${n} items`;
+// ── AUTH ──────────────────────────────────────────────────────
+let authTab = 'login';
+function switchAuthTab(t){
+  authTab = t;
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',(t==='login'&&i===0)||(t==='register'&&i===1)));
+  document.getElementById('login-form').style.display = t==='login'?'flex':'none';
+  document.getElementById('register-form').style.display = t==='register'?'flex':'none';
+  document.getElementById('auth-err').style.display = 'none';
+}
 
-      save();
-    }
+function showAuthErr(msg){
+  const el = document.getElementById('auth-err');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
-    function escHtml(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+function doLogin(e){
+  e.preventDefault();
+  const email = document.getElementById('li-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('li-pass').value;
+  const user  = getUsers().find(u => u.email===email && u.password===pass);
+  if(!user){ showAuthErr('Invalid email or password.'); return; }
+  ss(SK.cur, user);
+  launchApp();
+}
 
-    function addItem() {
-      const name  = nameInput.value.trim();
-      const price = parseFloat(priceInput.value);
+function doRegister(e){
+  e.preventDefault();
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-pass').value;
+  const users = getUsers();
+  if(users.find(u=>u.email===email)){ showAuthErr('Email already registered.'); return; }
+  const user = {id:uid(), name, email, password:pass};
+  users.push(user);
+  ss(SK.users, users);
+  ss(SK.cur, user);
+  launchApp();
+}
 
-      if (!name) { nameInput.focus(); return; }
-      if (isNaN(price) || price < 0) { priceInput.focus(); return; }
+function doLogout(){
+  ss(SK.cur, null);
+  document.getElementById('app-screen').hidden = true;
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('li-email').value='';
+  document.getElementById('li-pass').value='';
+}
 
-      items.push({ name, price });
-      render();
+// ── APP INIT ────────────────────────────────────────────────
+function launchApp(){
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').hidden = false;
+  const u = currentUser();
+  const initials = u.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('hdr-avatar').textContent = initials;
+  loadPrefs();
+  document.getElementById('s-name').textContent = u.name;
+  document.getElementById('s-email').textContent = u.email;
+  switchTab('dash');
+}
 
-      nameInput.value  = '';
-      priceInput.value = '';
-      nameInput.focus();
-    }
+function loadPrefs(){
+  const p = getPrefs();
+  document.getElementById('s-tgl-alert').classList.toggle('on', p.alert);
+  document.getElementById('s-tgl-rise').classList.toggle('on', p.rise);
+  document.getElementById('s-tgl-weekly').classList.toggle('on', p.weekly);
+}
 
-    btnAdd.addEventListener('click', addItem);
+// ── NAVIGATION ──────────────────────────────────────────────
+let activeTab = 'dash';
+const tabTitles = {dash:'Dashboard',add:'Add Product',hist:'Price History',notif:'Notifications',settings:'Settings'};
 
-    nameInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') priceInput.focus();
-    });
+function switchTab(t){
+  activeTab = t;
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('nav-'+t).classList.add('active');
+  document.getElementById('hdr-title').textContent = tabTitles[t];
 
-    priceInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') addItem();
-    });
+  if(t==='dash') renderDash();
+  else if(t==='hist') renderHistory();
+  else if(t==='notif') renderNotifs();
+  else if(t==='settings') renderSettings();
+}
 
-    itemList.addEventListener('click', e => {
-      const btn = e.target.closest('.btn-remove');
-      if (!btn) return;
-      const i = parseInt(btn.dataset.i, 10);
-      items.splice(i, 1);
-      render();
-    });
+// ── FILTER ──────────────────────────────────────────────────
+let activeFilter = 'all';
+function setFilter(el, f){
+  activeFilter = f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderDash();
+}
 
-    btnClear.addEventListener('click', () => {
-      if (items.length === 0) return;
-      if (confirm('Remove all products?')) {
-        items = [];
-        render();
+// ── DASHBOARD ───────────────────────────────────────────────
+function priceStatus(p){
+  const cur = currentPrice(p);
+  if(cur <= p.targetPrice) return 'below';
+  return 'above';
+}
+function currentPrice(p){ return p.priceHistory[p.priceHistory.length-1]?.price ?? 0 }
+
+function renderDash(){
+  const q = document.getElementById('dash-search').value.toLowerCase();
+  let prods = getProducts();
+
+  // stats
+  document.getElementById('stat-total').textContent = prods.length;
+  document.getElementById('stat-below').textContent = prods.filter(p=>priceStatus(p)==='below').length;
+  document.getElementById('stat-above').textContent = prods.filter(p=>priceStatus(p)==='above').length;
+  document.getElementById('s-count').textContent = prods.length + ' product' + (prods.length!==1?'s':'');
+
+  // filter
+  if(q) prods = prods.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  if(activeFilter==='below') prods = prods.filter(p=>priceStatus(p)==='below');
+  else if(activeFilter==='above') prods = prods.filter(p=>priceStatus(p)==='above');
+  else if(activeFilter==='alert') prods = prods.filter(p=>p.alertEnabled);
+
+  const list = document.getElementById('dash-list');
+  if(!prods.length){
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🛒</div>
+      <div class="empty-title">${q||activeFilter!=='all'?'No matches found':'Nothing tracked yet'}</div>
+      <div class="empty-sub">${q||activeFilter!=='all'?'Try a different search or filter':'Tap Add to start tracking products'}</div>
+      ${!q&&activeFilter==='all'?'<button class="btn-primary" style="max-width:180px;margin:0 auto" onclick="switchTab(\'add\')">+ Add Product</button>':''}
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = prods.map(p => buildPCard(p)).join('');
+  // render sparklines
+  prods.forEach(p => drawSparkline('sp-'+p.id, p.priceHistory.map(h=>h.price), p.targetPrice));
+
+  updateNotifBadge();
+}
+
+function buildPCard(p){
+  const cur = currentPrice(p);
+  const st  = priceStatus(p);
+  const diff= cur - p.targetPrice;
+  const pct = p.targetPrice > 0 ? ((diff/p.targetPrice)*100).toFixed(1) : 0;
+  const accCls = st==='below'?'acc-below':'acc-above';
+  const bCls   = st==='below'?'b-below':'b-above';
+  const pCls   = st==='below'?'pv-below':'pv-above';
+  const bTxt   = st==='below'
+    ? `✅ ${Math.abs(pct)}% below`
+    : `⚠️ +${pct}% above`;
+  const lastDate = p.priceHistory.length ? fmtDate(p.priceHistory[p.priceHistory.length-1].ts) : '—';
+
+  return `<div class="pcard" onclick="event.target.closest('.card-acts')||editProduct('${p.id}')">
+    <div class="pcard-accent ${accCls}"></div>
+    <div class="pcard-top">
+      <div class="pcard-info">
+        <div class="pcard-name">${esc(p.name)}</div>
+        <div class="pcard-sku">${p.sku ? 'SKU: '+esc(p.sku) : (p.store?esc(p.store):'')}${p.store&&p.sku?' · '+esc(p.store):''}</div>
+      </div>
+      <span class="badge ${bCls}">${bTxt}</span>
+    </div>
+    <div class="pcard-prices">
+      <div class="price-blk"><div class="price-lbl">Current</div><div class="price-val ${pCls}">${fmt(cur)}</div></div>
+      <div class="price-blk"><div class="price-lbl">Target</div><div class="price-val">${fmt(p.targetPrice)}</div></div>
+      <div class="price-blk"><div class="price-lbl">Savings</div><div class="price-val" style="font-size:.95rem;color:${diff>0?'var(--orange)':'var(--green)'}">${diff>0?'+':''} ${fmt(diff)}</div></div>
+    </div>
+    <div class="pcard-sparkline"><svg class="price-chart" id="sp-${p.id}"></svg></div>
+    <div class="pcard-footer">
+      <span class="card-date">Updated ${lastDate}${p.alertEnabled?' · 🔔':''}</span>
+      <div class="card-acts" onclick="event.stopPropagation()">
+        <button class="btn-icon btn-edit" title="Edit" onclick="editProduct('${p.id}')">✏️</button>
+        <button class="btn-icon btn-del" title="Delete" onclick="askDelete('${p.id}')">🗑️</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── SPARKLINE ────────────────────────────────────────────────
+function drawSparkline(id, prices, target){
+  const svg = document.getElementById(id);
+  if(!svg || prices.length < 2) return;
+  const W = svg.parentElement.offsetWidth || 300;
+  const H = 88;
+  const pad = {t:8,b:8,l:4,r:4};
+  const iw = W - pad.l - pad.r;
+  const ih = H - pad.t - pad.b;
+  const mn = Math.min(...prices, target) * 0.98;
+  const mx = Math.max(...prices, target) * 1.02;
+  const xFn = i => pad.l + (i/(prices.length-1))*iw;
+  const yFn = v => pad.t + (1-(v-mn)/(mx-mn))*ih;
+
+  // target line
+  const ty = yFn(target);
+  // area path
+  let d = `M${xFn(0)},${yFn(prices[0])}`;
+  prices.forEach((v,i)=>{ if(i>0) d+=` L${xFn(i)},${yFn(v)}` });
+  const areaD = d + ` L${xFn(prices.length-1)},${H-pad.b} L${pad.l},${H-pad.b} Z`;
+
+  const last = prices[prices.length-1];
+  const color = last <= target ? '#059669' : '#EA580C';
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="gr-${id}" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="${pad.l}" y1="${ty}" x2="${W-pad.r}" y2="${ty}" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <path d="${areaD}" fill="url(#gr-${id})"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${xFn(prices.length-1)}" cy="${yFn(last)}" r="4" fill="${color}"/>
+  `;
+}
+
+// ── ADD/EDIT PRODUCT ─────────────────────────────────────────
+let editId = null;
+function clearForm(){
+  ['f-name','f-sku','f-store','f-price','f-target','f-url','f-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+  });
+  document.getElementById('f-alert').classList.add('on');
+  document.getElementById('sku-hint').className='sku-hint';
+  document.getElementById('sku-hint').textContent='';
+}
+
+function editProduct(id){
+  const p = getProducts().find(p=>p.id===id);
+  if(!p) return;
+  editId = id;
+  document.getElementById('add-form-title').textContent = '✏️ Edit Product';
+  document.getElementById('add-submit-btn').textContent = 'Update Product';
+  document.getElementById('add-cancel-btn').style.display='block';
+  document.getElementById('f-name').value = p.name;
+  document.getElementById('f-sku').value  = p.sku || '';
+  document.getElementById('f-store').value = p.store || '';
+  document.getElementById('f-price').value = currentPrice(p);
+  document.getElementById('f-target').value = p.targetPrice;
+  document.getElementById('f-url').value = p.url || '';
+  document.getElementById('f-notes').value = p.notes || '';
+  document.getElementById('f-alert').classList.toggle('on', p.alertEnabled);
+  switchTab('add');
+}
+
+function cancelEdit(){
+  editId = null;
+  document.getElementById('add-form-title').textContent = '➕ Add New Product';
+  document.getElementById('add-submit-btn').textContent = 'Save Product';
+  document.getElementById('add-cancel-btn').style.display='none';
+  clearForm();
+  switchTab('dash');
+}
+
+function validateSKU(inp){
+  const hint = document.getElementById('sku-hint');
+  const v = inp.value.trim();
+  if(!v){ hint.className='sku-hint'; hint.textContent=''; return; }
+  if(/^[A-Za-z0-9\/\-_.]{3,30}$/.test(v)){
+    hint.className='sku-hint sku-ok'; hint.textContent='✓ Valid format';
+  } else {
+    hint.className='sku-hint sku-bad'; hint.textContent='Use letters, numbers, and - / .';
+  }
+}
+
+function toggleTgl(el){ el.classList.toggle('on') }
+
+function submitProduct(){
+  const name   = document.getElementById('f-name').value.trim();
+  const price  = parseFloat(document.getElementById('f-price').value);
+  const target = parseFloat(document.getElementById('f-target').value);
+  if(!name){ showToast('Product name is required'); document.getElementById('f-name').focus(); return; }
+  if(isNaN(price)||price<0){ showToast('Enter a valid current price'); document.getElementById('f-price').focus(); return; }
+  if(isNaN(target)||target<0){ showToast('Enter a valid target price'); document.getElementById('f-target').focus(); return; }
+
+  const prods = getProducts();
+  const alertOn = document.getElementById('f-alert').classList.contains('on');
+
+  if(editId){
+    const idx = prods.findIndex(p=>p.id===editId);
+    if(idx>-1){
+      const p = prods[idx];
+      const oldPrice = currentPrice(p);
+      p.name   = name;
+      p.sku    = document.getElementById('f-sku').value.trim();
+      p.store  = document.getElementById('f-store').value.trim();
+      p.url    = document.getElementById('f-url').value.trim();
+      p.notes  = document.getElementById('f-notes').value.trim();
+      p.targetPrice = target;
+      p.alertEnabled = alertOn;
+      if(price !== oldPrice){
+        p.priceHistory.push({ts:Date.now(), price});
+        checkPriceAlert(p, oldPrice, price);
       }
-    });
+      prods[idx] = p;
+    }
+    saveProducts(prods);
+    showToast('Product updated');
+    editId = null;
+  } else {
+    const newP = {
+      id:uid(), userId:currentUser().id, name,
+      sku: document.getElementById('f-sku').value.trim(),
+      store: document.getElementById('f-store').value.trim(),
+      url: document.getElementById('f-url').value.trim(),
+      notes: document.getElementById('f-notes').value.trim(),
+      targetPrice: target, alertEnabled: alertOn,
+      createdAt: Date.now(),
+      priceHistory:[{ts:Date.now(), price}]
+    };
+    prods.push(newP);
+    saveProducts(prods);
+    addNotif('info','Product Added',`${name} is now being tracked at ${fmt(price)}.`);
+    if(alertOn && price <= target){
+      addNotif('alert','Already At Target!',`${name} is ${fmt(price)} — already at or below your target of ${fmt(target)}!`);
+    }
+    showToast('Product added!');
+  }
 
-    render();
-  </script>
+  clearForm();
+  document.getElementById('add-form-title').textContent = '➕ Add New Product';
+  document.getElementById('add-submit-btn').textContent = 'Save Product';
+  document.getElementById('add-cancel-btn').style.display='none';
+  switchTab('dash');
+}
+
+function checkPriceAlert(p, oldPrice, newPrice){
+  const prefs = getPrefs();
+  if(prefs.alert && p.alertEnabled && newPrice <= p.targetPrice && oldPrice > p.targetPrice){
+    addNotif('alert','Price Target Hit! 🎉',`${p.name} dropped to ${fmt(newPrice)} — below your target of ${fmt(p.targetPrice)}!`);
+  }
+  if(prefs.rise && newPrice > oldPrice * 1.1){
+    addNotif('warning','Price Increased',`${p.name} rose from ${fmt(oldPrice)} to ${fmt(newPrice)} (+${(((newPrice-oldPrice)/oldPrice)*100).toFixed(0)}%).`);
+  }
+}
+
+// ── DELETE ───────────────────────────────────────────────────
+let pendingDeleteId = null;
+function askDelete(id){
+  const p = getProducts().find(p=>p.id===id);
+  if(!p) return;
+  pendingDeleteId = id;
+  document.getElementById('del-name').textContent = p.name;
+  document.getElementById('del-modal').classList.add('open');
+}
+function confirmDelete(){
+  if(!pendingDeleteId) return;
+  const prods = getProducts().filter(p=>p.id!==pendingDeleteId);
+  saveProducts(prods);
+  pendingDeleteId = null;
+  closeModal('del-modal');
+  renderDash();
+  showToast('Product removed');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+
+// click outside modal to close
+document.getElementById('del-modal').addEventListener('click', e => {
+  if(e.target===e.currentTarget) closeModal('del-modal');
+});
+
+// ── HISTORY ─────────────────────────────────────────────────
+function renderHistory(){
+  const q = document.getElementById('hist-search').value.toLowerCase();
+  let prods = getProducts();
+  if(q) prods = prods.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+
+  const list = document.getElementById('hist-list');
+  if(!prods.length){
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div>
+      <div class="empty-title">No products found</div>
+      <div class="empty-sub">Add products to see price history here</div></div>`;
+    return;
+  }
+
+  list.innerHTML = prods.map(p => buildHistCard(p)).join('');
+  // draw charts
+  prods.forEach(p => {
+    if(p.priceHistory.length >= 2)
+      drawSparklineFull('hsp-'+p.id, p.priceHistory, p.targetPrice);
+  });
+}
+
+function buildHistCard(p){
+  const hist = p.priceHistory.slice().reverse().slice(0,5);
+  const entries = hist.map((h,i) => {
+    const prev = hist[i+1];
+    let trend = '';
+    if(prev){ trend = h.price > prev.price ? '<span class="t-up">↑</span>' : h.price < prev.price ? '<span class="t-dn">↓</span>' : '<span class="t-fl">→</span>' }
+    return `<div class="h-entry"><span class="h-date">${fmtDateFull(h.ts)}</span><span class="h-price">${trend} ${fmt(h.price)}</span></div>`;
+  }).join('');
+
+  const prices = p.priceHistory.map(h=>h.price);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+
+  return `<div class="hist-card">
+    <div class="hist-hdr">
+      <div><div class="hist-name">${esc(p.name)}</div>${p.sku?`<div class="hist-sku">SKU: ${esc(p.sku)}</div>`:''}</div>
+      <div style="text-align:right">
+        <div style="font-size:.72rem;color:var(--t3)">Target</div>
+        <div style="font-weight:800;font-size:.95rem;color:var(--primary)">${fmt(p.targetPrice)}</div>
+      </div>
+    </div>
+    ${p.priceHistory.length>=2?`<svg class="price-chart" id="hsp-${p.id}" style="height:100px"></svg>
+    <div class="chart-lbls">
+      <span class="chart-lbl">Min: ${fmt(min)}</span>
+      <span class="chart-lbl">${p.priceHistory.length} data points</span>
+      <span class="chart-lbl">Max: ${fmt(max)}</span>
+    </div>`:'<div style="font-size:.85rem;color:var(--t3);padding:12px 0">Only one price recorded — add more to see trends.</div>'}
+    <div class="hist-entries">
+      <div style="font-size:.78rem;font-weight:700;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">Recent Prices</div>
+      ${entries}
+    </div>
+    <div style="position:relative;margin-top:6px">
+      <div class="add-price-row">
+        <div style="position:relative;flex:1">
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--t2);font-size:.85rem;pointer-events:none">$</span>
+          <input type="number" id="np-${p.id}" placeholder="Log new price" min="0" step="0.01" style="padding-left:18px"/>
+        </div>
+        <button class="btn-sm" onclick="logPrice('${p.id}')">Log Price</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function drawSparklineFull(id, history, target){
+  const svg = document.getElementById(id);
+  if(!svg || history.length < 2) return;
+  const W = svg.parentElement.offsetWidth || 300;
+  const H = 100;
+  const pad = {t:10,b:10,l:4,r:4};
+  const prices = history.map(h=>h.price);
+  const mn = Math.min(...prices, target) * 0.97;
+  const mx = Math.max(...prices, target) * 1.03;
+  const iw = W - pad.l - pad.r;
+  const ih = H - pad.t - pad.b;
+  const xFn = i => pad.l + (i/(history.length-1))*iw;
+  const yFn = v => pad.t + (1-(v-mn)/(mx-mn))*ih;
+
+  let d = `M${xFn(0)},${yFn(prices[0])}`;
+  prices.forEach((v,i)=>{ if(i>0) d+=` L${xFn(i)},${yFn(v)}` });
+  const areaD = d + ` L${xFn(prices.length-1)},${H-pad.b} L${pad.l},${H-pad.b} Z`;
+  const last = prices[prices.length-1];
+  const color = last <= target ? '#059669' : '#EA580C';
+  const ty = yFn(target);
+
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="${id}-gr" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".3"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="${pad.l}" y1="${ty}" x2="${W-pad.r}" y2="${ty}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="5,3"/>
+    <text x="${W-pad.r-2}" y="${ty-4}" text-anchor="end" font-size="9" fill="#94a3b8">Target</text>
+    <path d="${areaD}" fill="url(#${id}-gr)"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${prices.map((v,i)=>`<circle cx="${xFn(i)}" cy="${yFn(v)}" r="${i===prices.length-1?4.5:2.5}" fill="${color}" opacity="${i===prices.length-1?1:.7}"/>`).join('')}
+  `;
+}
+
+function logPrice(productId){
+  const inp = document.getElementById('np-'+productId);
+  const price = parseFloat(inp.value);
+  if(isNaN(price)||price<0){ showToast('Enter a valid price'); return; }
+  const prods = getProducts();
+  const idx = prods.findIndex(p=>p.id===productId);
+  if(idx===-1) return;
+  const p = prods[idx];
+  const oldPrice = currentPrice(p);
+  p.priceHistory.push({ts:Date.now(), price});
+  checkPriceAlert(p, oldPrice, price);
+  prods[idx]=p;
+  saveProducts(prods);
+  inp.value='';
+  renderHistory();
+  updateNotifBadge();
+  showToast('Price logged!');
+}
+
+// ── NOTIFICATIONS ────────────────────────────────────────────
+function addNotif(type, title, msg){
+  const notifs = getNotifs();
+  notifs.unshift({id:uid(), userId:currentUser().id, type, title, msg, ts:Date.now(), read:false});
+  saveNotifs(notifs);
+  updateNotifBadge();
+}
+
+function updateNotifBadge(){
+  const unread = getNotifs().filter(n=>!n.read).length;
+  const badge = document.getElementById('notif-badge');
+  badge.hidden = unread===0;
+  badge.textContent = unread > 9 ? '9+' : unread;
+}
+
+function renderNotifs(){
+  const notifs = getNotifs();
+  updateNotifBadge();
+  const list = document.getElementById('notif-list');
+  if(!notifs.length){
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔔</div>
+      <div class="empty-title">No notifications</div>
+      <div class="empty-sub">Price alerts will appear here when triggered</div></div>`;
+    return;
+  }
+  const ico = {alert:'🎉',warning:'⚠️',info:'ℹ️'};
+  const icoC = {alert:'ni-alert',warning:'ni-warn',info:'ni-info'};
+  list.innerHTML = notifs.map(n => `
+    <div class="notif-card ${n.read?'read':''}" onclick="markRead('${n.id}')">
+      <div class="notif-ico ${icoC[n.type]||'ni-info'}">${ico[n.type]||'ℹ️'}</div>
+      <div class="notif-body">
+        <div class="notif-title">${esc(n.title)}</div>
+        <div class="notif-msg">${esc(n.msg)}</div>
+        <div class="notif-time">${fmtDateFull(n.ts)}</div>
+      </div>
+      ${!n.read?'<div class="notif-dot"></div>':''}
+    </div>`).join('');
+}
+
+function markRead(id){
+  const notifs = getNotifs();
+  const n = notifs.find(n=>n.id===id);
+  if(n){ n.read=true; saveNotifs(notifs); renderNotifs(); }
+}
+
+function markAllRead(){
+  const notifs = getNotifs().map(n=>({...n,read:true}));
+  saveNotifs(notifs);
+  renderNotifs();
+  showToast('All marked as read');
+}
+
+function clearNotifs(){
+  if(!getNotifs().length) return;
+  if(confirm('Clear all notifications?')){
+    saveNotifs([]);
+    renderNotifs();
+    showToast('Notifications cleared');
+  }
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────
+function renderSettings(){
+  const u = currentUser();
+  document.getElementById('s-name').textContent = u.name;
+  document.getElementById('s-email').textContent = u.email;
+  document.getElementById('s-count').textContent = getProducts().length + ' product' + (getProducts().length!==1?'s':'');
+  loadPrefs();
+}
+
+function exportData(){
+  const prods = getProducts();
+  const data = JSON.stringify({exported: new Date().toISOString(), products: prods}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='pricetrack-export.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Data exported!');
+}
+
+function clearAllProducts(){
+  saveProducts([]);
+  renderDash();
+  renderSettings();
+  showToast('All products cleared');
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// ── STARTUP ──────────────────────────────────────────────────
+const cur = currentUser();
+if(cur){ launchApp(); }
+updateNotifBadge();
+</script>
 </body>
 </html>
