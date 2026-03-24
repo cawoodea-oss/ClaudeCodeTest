@@ -24,20 +24,24 @@ export default function Home() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Check for Google auth code in URL (OAuth callback)
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-
-    if (code) {
-      exchangeCodeForToken(code);
-    }
-
-    // Check for stored token
-    const storedToken = localStorage.getItem("google_access_token");
-    if (storedToken) {
-      setAccessToken(storedToken);
-    }
+    // Check authentication status via cookie
+    checkAuthStatus();
   }, []);
+
+  async function checkAuthStatus() {
+    try {
+      const response = await fetch("/api/auth/check", {
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (data.authenticated) {
+        setAccessToken("authenticated");
+        console.log("✓ User is authenticated with Google Calendar");
+      }
+    } catch (err) {
+      console.error("Error checking auth status:", err);
+    }
+  }
 
   async function exchangeCodeForToken(code) {
     try {
@@ -87,27 +91,35 @@ export default function Home() {
     if (accessToken) {
       try {
         setIsLoading(true);
+        console.log("Attempting to sync task to Google Calendar:", newTask);
         const response = await fetch("/api/calendar/create-event", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             task: newTask,
           }),
+          credentials: "include",
         });
 
         const result = await response.json();
+        console.log("Calendar API response:", response.status, result);
+        
         if (!response.ok) {
-          setError(`Calendar sync failed: ${result.error}`);
+          const errorMsg = result.details || result.error;
+          setError(`Calendar sync failed: ${errorMsg}`);
           console.error("Calendar sync error:", result);
         } else {
-          console.log("Task synced to Google Calendar:", result);
+          console.log("✓ Task synced to Google Calendar:", result);
+          setError("");
         }
       } catch (err) {
         console.error("Error syncing to calendar:", err);
-        setError("Failed to sync task to Google Calendar");
+        setError("Failed to sync task to Google Calendar: " + err.message);
       } finally {
         setIsLoading(false);
       }
+    } else {
+      console.log("Not authenticated - skipping calendar sync");
     }
 
     setTitle("");
