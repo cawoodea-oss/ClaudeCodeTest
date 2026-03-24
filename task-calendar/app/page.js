@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Calendar from "./components/Calendar";
 
 const PRIORITY_ORDER = { high: 0, med: 1, low: 2, "": 3 };
@@ -19,8 +19,57 @@ export default function Home() {
   const [duration, setDuration] = useState("");
   const [date, setDate] = useState("");
   const [openTaskId, setOpenTaskId] = useState(null);
+  const [accessToken, setAccessToken] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleAddTask(e) {
+  useEffect(() => {
+    // Check for Google auth code in URL (OAuth callback)
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+
+    if (code) {
+      exchangeCodeForToken(code);
+    }
+
+    // Check for stored token
+    const storedToken = localStorage.getItem("google_access_token");
+    if (storedToken) {
+      setAccessToken(storedToken);
+    }
+  }, []);
+
+  async function exchangeCodeForToken(code) {
+    try {
+      const response = await fetch(`/api/auth/callback?code=${code}`);
+      const data = await response.json();
+
+      if (data.tokens && data.tokens.access_token) {
+        setAccessToken(data.tokens.access_token);
+        localStorage.setItem("google_access_token", data.tokens.access_token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (err) {
+      console.error("Error exchanging code:", err);
+      setError("Failed to authenticate with Google");
+    }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      const response = await fetch("/api/auth/login");
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch (err) {
+      console.error("Error getting auth URL:", err);
+      setError("Failed to initiate Google login");
+    }
+  }
+
+  async function handleAddTask(e) {
     e.preventDefault();
     if (!title.trim() || !duration) return;
 
@@ -33,6 +82,32 @@ export default function Home() {
     };
 
     setTasks((prev) => [newTask, ...prev]);
+
+    // Sync to Google Calendar if authenticated
+    if (accessToken) {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/calendar/create-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            access_token: accessToken,
+            task: newTask,
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          setError(`Calendar sync failed: ${result.error}`);
+        }
+      } catch (err) {
+        console.error("Error syncing to calendar:", err);
+        setError("Failed to sync task to Google Calendar");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
     setTitle("");
     setDuration("");
     setDate("");
@@ -54,6 +129,33 @@ export default function Home() {
       <div className="max-w-xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Task Calendar</h1>
         <p className="text-gray-500 mb-8">Add tasks and schedule them to your calendar.</p>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            {error}
+            <button 
+              onClick={() => setError("")}
+              className="float-right text-red-500 hover:text-red-700 font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Google Calendar Auth */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6">
+          {accessToken ? (
+            <p className="text-sm text-blue-700">✓ Connected to Google Calendar</p>
+          ) : (
+            <button
+              onClick={handleGoogleLogin}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              Connect to Google Calendar
+            </button>
+          )}
+        </div>
 
         {/* Add Task Form */}
         <form
@@ -104,9 +206,10 @@ export default function Home() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            disabled={isLoading}
+            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Add Task
+            {isLoading ? "Syncing..." : "Add Task"}
           </button>
         </form>
 
