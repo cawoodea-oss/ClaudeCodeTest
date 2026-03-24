@@ -44,9 +44,9 @@ export default function Home() {
       const response = await fetch(`/api/auth/callback?code=${code}`);
       const data = await response.json();
 
-      if (data.tokens && data.tokens.access_token) {
-        setAccessToken(data.tokens.access_token);
-        localStorage.setItem("google_access_token", data.tokens.access_token);
+      if (data.success) {
+        setAccessToken("authenticated");
+        localStorage.setItem("google_access_token", "authenticated");
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     } catch (err) {
@@ -91,7 +91,6 @@ export default function Home() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            access_token: accessToken,
             task: newTask,
           }),
         });
@@ -99,6 +98,9 @@ export default function Home() {
         const result = await response.json();
         if (!response.ok) {
           setError(`Calendar sync failed: ${result.error}`);
+          console.error("Calendar sync error:", result);
+        } else {
+          console.log("Task synced to Google Calendar:", result);
         }
       } catch (err) {
         console.error("Error syncing to calendar:", err);

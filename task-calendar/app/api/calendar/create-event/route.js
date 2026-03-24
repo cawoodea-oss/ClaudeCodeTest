@@ -1,18 +1,36 @@
+import { cookies } from "next/headers";
 import { createCalendarEvent } from "@/lib/google-calendar";
 
 export async function POST(request) {
-  const { access_token, task } = await request.json();
+  const cookieStore = await cookies();
+  const access_token = cookieStore.get("google_access_token")?.value;
+  const { task } = await request.json();
 
-  if (!access_token || !task) {
+  if (!access_token) {
     return Response.json(
-      { error: "Missing access_token or task data" },
+      { error: "Not authenticated. Please connect to Google Calendar first." },
+      { status: 401 }
+    );
+  }
+
+  if (!task) {
+    return Response.json(
+      { error: "Missing task data" },
       { status: 400 }
     );
   }
 
   try {
-    // Calculate end time based on duration
-    const startTime = task.date ? new Date(task.date) : new Date();
+    // Parse date string and set to start of day in local timezone
+    let startTime;
+    if (task.date) {
+      const [year, month, day] = task.date.split("-");
+      startTime = new Date(year, parseInt(month) - 1, parseInt(day), 9, 0, 0);
+    } else {
+      startTime = new Date();
+    }
+
+    // Calculate end time based on duration (in minutes)
     const endTime = new Date(startTime.getTime() + task.duration * 60 * 1000);
 
     const eventData = {
@@ -22,11 +40,15 @@ export async function POST(request) {
       endTime: endTime.toISOString(),
     };
 
+    console.log("Creating calendar event:", eventData);
+
     const tokens = {
       access_token,
     };
 
     const calendarEvent = await createCalendarEvent(tokens, eventData);
+
+    console.log("Event created successfully:", calendarEvent.id);
 
     return Response.json({
       success: true,
