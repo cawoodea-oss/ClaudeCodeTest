@@ -21,13 +21,28 @@ export async function POST(request) {
   }
 
   try {
-    // Parse date string and set to start of day in local timezone
+    // Parse date and time to create start time in local timezone
     let startTime;
     if (task.date) {
       const [year, month, day] = task.date.split("-");
-      startTime = new Date(year, parseInt(month) - 1, parseInt(day), 9, 0, 0);
+      let hour = 9; // Default to 9 AM
+      let minute = 0;
+
+      // If start time is provided, parse it (HH:mm format)
+      if (task.startTime) {
+        const [h, m] = task.startTime.split(":");
+        hour = parseInt(h);
+        minute = parseInt(m);
+      }
+
+      startTime = new Date(year, parseInt(month) - 1, parseInt(day), hour, minute, 0);
     } else {
+      // If no date provided, use current time
       startTime = new Date();
+      if (task.startTime) {
+        const [h, m] = task.startTime.split(":");
+        startTime.setHours(parseInt(h), parseInt(m), 0);
+      }
     }
 
     // Calculate end time based on duration (in minutes)
